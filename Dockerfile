@@ -1,26 +1,27 @@
-# Imagen base ligera con Python 3.11
 FROM python:3.11-slim
 
-# Instalar dependencias del sistema y Ollama (YA INCLUYE zstd que faltaba)
+# Instalar curl y zstd
 RUN apt-get update && apt-get install -y curl zstd && \
-    curl -fsSL https://ollama.com/install.sh | sh && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Establecer carpeta de trabajo
+# Instalar Ollama
+RUN curl -fsSL https://ollama.com/install.sh | sh
+
 WORKDIR /app
 
-# Instalar librerías de Python necesarias
+# Instalar dependencias Python
 RUN pip install fastapi uvicorn python-multipart jinja2 requests
 
-# Copiar todos los archivos del proyecto
+# Crear directorio para modelos
+RUN mkdir -p /root/.ollama/models
+
+# Copiar tu código (si existe)
 COPY . .
 
-# Variables de entorno obligatorias
-ENV OLLAMA_HOST=0.0.0.0
-ENV OLLAMA_MODEL=llama3.2:1b
+# Exponer puertos
+EXPOSE 11434 8000
 
-# Puerto que usa Railway
-EXPOSE 8080
-
-# Comando de arranque: levanta Ollama, descarga el modelo y arranca la web
-CMD ["/bin/sh", "-c", "ollama serve & sleep 15 && ollama pull $OLLAMA_MODEL && uvicorn main:app --host 0.0.0.0 --port 8080"]
+# Comando de inicio: Ollama en background + API FastAPI
+CMD ollama serve & sleep 2 && \
+    ollama pull tinyllama && \
+    uvicorn main:app --host 0.0.0.0 --port 8000
