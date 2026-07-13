@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat IA Gamer</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Courier New', monospace; }
+        body { background: #0a0a0f; color: #0ff; min-height: 100vh; display: flex; flex-direction: column; }
+        header { padding: 1.5rem; text-align: center; border-bottom: 2px solid #f0f; box-shadow: 0 0 15px #f0f; }
+        h1 { font-size: 2.2rem; text-shadow: 0 0 10px #0ff, 0 0 20px #f0f; }
+        .chat { flex: 1; max-width: 900px; width: 95%; margin: 2rem auto; display: flex; flex-direction: column; gap: 1rem; }
+        .mensaje { padding: 1rem; border-radius: 8px; max-width: 80%; box-shadow: 0 0 8px currentColor; }
+        .usuario { background: rgba(0,255,255,0.1); border: 1px solid #0ff; align-self: flex-end; color: #0ff; }
+        .ia { background: rgba(255,0,255,0.1); border: 1px solid #f0f; align-self: flex-start; color: #f0f; }
+        .entrada { display: flex; gap: 0.5rem; padding: 1rem; border-top: 2px solid #0ff; box-shadow: 0 -5px 15px rgba(0,255,255,0.2); }
+        input { flex: 1; padding: 1rem; background: #111; border: 1px solid #0ff; color: #0ff; border-radius: 4px; font-size: 1rem; }
+        button { padding: 1rem 2rem; background: linear-gradient(45deg,#0ff,#f0f); border: none; color: #000; font-weight: bold; border-radius: 4px; cursor: pointer; box-shadow: 0 0 10px #0ff; transition: 0.2s; }
+        button:hover { box-shadow: 0 0 20px #f0f; transform: scale(1.05); }
+    </style>
+</head>
+<body>
+    <header><h1>⚡ CHAT IA GAMER ⚡</h1></header>
+    <div class="chat" id="chat"></div>
+    <div class="entrada">
+        <input type="text" id="mensaje" placeholder="Escribe tu pregunta...">
+        <button onclick="enviar()">ENVIAR</button>
+    </div>
+    <script>
+        async function enviar() {
+            const input = document.getElementById("mensaje");
+            const texto = input.value.trim();
+            if (!texto) return;
+            const chat = document.getElementById("chat");
+            chat.innerHTML += `<div class="mensaje usuario">${texto}</div>`;
+            input.value = "";
+            const res = await fetch("/api/chat", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({mensaje: texto})
+            });
+            const datos = await res.json();
+            chat.innerHTML += `<div class="mensaje ia">${datos.respuesta || datos.error}</div>`;
+            chat.scrollTop = chat.scrollHeight;
+        }
+        document.getElementById("mensaje").addEventListener("keydown", e => e.key === "Enter" && enviar());
+    </script>
+</body>
+</html>
